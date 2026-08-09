@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { LayoutDashboard, Plus, LogOut, Menu } from "lucide-react";
 import { getCurrentUser } from "../../helpers/profile";
 
 function Profile() {
+  const [displaySidebar, setDisplaySidebar] = useState(false);
   const currentUser = getCurrentUser();
   return (
     <>
@@ -23,13 +24,23 @@ function Profile() {
           </div>
         </div>
         <div className="absolute w-full h-0.5 left-0 right-0 bottom-0 bg-black opacity-20"></div>
-        <button type="button" className="block md:hidden">
+        <button
+          type="button"
+          className="block md:hidden"
+          onClick={() => {
+            setDisplaySidebar((prev) => !prev);
+          }}
+        >
           <Menu size={18} />
         </button>
       </nav>
 
       {/* Side Bar */}
-      <div className="fixed min-h-screen bg-white border-r border-gray-100 w-64">
+      <div
+        className={`fixed min-h-screen bg-white border-r border-gray-100 w-64
+    transition-transform duration-300 ease-in-out
+    ${displaySidebar ? "translate-x-0" : "-translate-x-full"}`}
+      >
         <div className="p-6">
           <ul className="flex flex-col gap-1">
             <li>

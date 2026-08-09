@@ -23,6 +23,10 @@ function NoteEditor() {
     },
   });
 
+  if (!currentUser) {
+    return null;
+  }
+
   const addNotes = () => {
     if (!title.trim() || !content.trim()) {
       alert("Content and title is compulsory");

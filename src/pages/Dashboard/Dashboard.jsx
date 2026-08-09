@@ -8,6 +8,9 @@ import { getCurrentUser } from "../../helpers/profile";
 function Dashboard() {
   const currentUser = getCurrentUser();
   const [searchVal, setSearchVal] = useState("");
+  if (!currentUser) {
+    return null;
+  }
   const notes = getNotes().filter((note) => note.owner === currentUser.email);
 
   function displayNotes() {
