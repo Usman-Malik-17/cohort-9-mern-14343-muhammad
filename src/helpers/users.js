@@ -1,7 +1,11 @@
 function getUsers() {
   try {
-    const notes = localStorage.getItem("users");
-    return notes ? JSON.parse(notes) : [];
+    const users = localStorage.getItem("users");
+    if (!users) {
+      return [];
+    }
+    const parsedUsers = JSON.parse(users);
+    return Array.isArray(parsedUsers) ? parsedUsers : [];
   } catch {
     return [];
   }
