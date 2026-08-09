@@ -11,7 +11,7 @@ function ProtectedRoute({ children }) {
     if (logIn !== "true" || currentUser === null) {
       navigate("/");
     }
-  }, [logIn, navigate]);
+  }, [logIn, navigate, currentUser]);
 
   if (logIn !== "true" || currentUser === null) {
     return null;

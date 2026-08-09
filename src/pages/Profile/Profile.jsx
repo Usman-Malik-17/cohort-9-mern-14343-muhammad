@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { LayoutDashboard, Plus, LogOut, Menu } from "lucide-react";
 import { getCurrentUser } from "../../helpers/profile";
@@ -25,6 +25,8 @@ function Profile() {
         </div>
         <div className="absolute w-full h-0.5 left-0 right-0 bottom-0 bg-black opacity-20"></div>
         <button
+          aria-label="Toggle navigation menu"
+          aria-expanded={displaySidebar}
           type="button"
           className="block md:hidden"
           onClick={() => {
