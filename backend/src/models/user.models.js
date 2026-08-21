@@ -20,6 +20,7 @@ const userSchema = new Schema(
     password: {
       type: String,
       required: [true, "Password is required"],
+      select: false,
     },
     isEmailVerified: {
       type: Boolean,
@@ -27,18 +28,23 @@ const userSchema = new Schema(
     },
     refreshToken: {
       type: String,
+      select: false,
     },
     forgotPasswordToken: {
       type: String,
+      select: false,
     },
     forgotPasswordExpiry: {
       type: Date,
+      select: false,
     },
     emailVerificationToken: {
       type: String,
+      select: false,
     },
     emailVerificationExpiry: {
       type: Date,
+      select: false,
     },
   },
   {
@@ -48,11 +54,19 @@ const userSchema = new Schema(
 
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
-  this.password = await bcrypt.hash(this.password, 10);
+  try {
+    this.password = await bcrypt.hash(this.password, 10);
+  } catch (error) {
+    throw new Error("Failed to hash password");
+  }
 });
 
 userSchema.methods.isPasswordCorrect = async function (password) {
-  return await bcrypt.compare(password, this.password);
+  try {
+    return await bcrypt.compare(password, this.password);
+  } catch (error) {
+    throw new Error("Failed to compare password");
+  }
 };
 
 userSchema.methods.generateAccessToken = function () {

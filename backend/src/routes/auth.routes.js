@@ -29,3 +29,4 @@ router
   .route("/resend-email-verification")
   .post(verifyJwt, resendEmailVerification);
 export default router;
+

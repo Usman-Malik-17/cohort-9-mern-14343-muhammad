@@ -70,10 +70,17 @@ const updateNote = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid Note Id format");
   }
 
+  if (title === undefined && content === undefined && tags === undefined) {
+    throw new ApiError(
+      400,
+      "At least one field (title, content, or tags) must be provided to update",
+    );
+  }
+
   const updatedNote = await Note.findOneAndUpdate(
     { _id: noteId, createdBy: req?.user._id },
     { $set: { title, content, tags } },
-    { new: true },
+    { new: true, runValidators: true },
   );
 
   if (!updatedNote) {

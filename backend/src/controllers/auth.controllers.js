@@ -62,9 +62,11 @@ const registerUser = asyncHandler(async (req, res) => {
     );
   }
 
-  const createdUser = await User.findById(user._id).select(
-    "-password -refreshToken -emailVerificationToken -emailVerificationExpiry",
-  );
+  const createdUser = await User.findById(user._id);
+
+  // select(
+  //   "-password -refreshToken -emailVerificationToken -emailVerificationExpiry",
+  // );
 
   if (!createdUser) {
     throw new ApiError(500, "Something went wrong while registering a user");
@@ -88,7 +90,7 @@ const login = asyncHandler(async (req, res) => {
   if (!email && !password) {
     throw new ApiError(400, "Email and password is required");
   }
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).select("+password");
 
   if (!user) {
     throw new ApiError(400, "User does not exist");
@@ -102,9 +104,11 @@ const login = asyncHandler(async (req, res) => {
   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
     user._id,
   );
-  const loggedInUser = await User.findById(user._id).select(
-    "-password -refreshToken -emailVerificationToken -emailVerificationExpiry",
-  );
+  const loggedInUser = await User.findById(user._id);
+
+  // select(
+  //   "-password -refreshToken -emailVerificationToken -emailVerificationExpiry",
+  // );
 
   logger.info({ userId: user._id }, "User logged in successfully");
 
@@ -164,33 +168,24 @@ const verifyEmail = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Email verification token is missing");
   }
 
-  let hashedToken = crypto
-    .createHash("sha256")
-    .update(verficationToken)
-    .digest("hex");
+  const hashedToken = crypto.createHash("sha256").update(verficationToken).digest("hex");
 
   const user = await User.findOne({
     emailVerificationToken: hashedToken,
     emailVerificationExpiry: { $gt: Date.now() },
-  });
+  }).select("+emailVerificationToken +emailVerificationExpiry");
 
   if (!user) {
     throw new ApiError(400, "Token is invalid or expired");
   }
+
   user.emailVerificationToken = undefined;
   user.emailVerificationExpiry = undefined;
-
   user.isEmailVerified = true;
   await user.save({ validateBeforeSave: false });
 
   return res.status(200).json(
-    new ApiResponse(
-      200,
-      {
-        isEmailVerified: true,
-      },
-      "Email is verified",
-    ),
+    new ApiResponse(200, { isEmailVerified: true }, "Email is verified"),
   );
 });
 
@@ -238,10 +233,11 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       process.env.REFRESH_TOKEN_SECRET,
     );
 
-    const user = await User.findById(decodedToken?._id);
+    const user = await User.findById(decodedToken?._id).select("+refreshToken");
     if (!user) {
       throw new ApiError(401, "Invalid refresh token");
     }
+
     if (incomingRefreshToken !== user?.refreshToken) {
       user.refreshToken = "";
       await user.save({ validateBeforeSave: false });
