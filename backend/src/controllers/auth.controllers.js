@@ -51,7 +51,7 @@ const registerUser = asyncHandler(async (req, res) => {
       subject: "Please verify your email",
       mailgenContent: emailVerificationMailGenContent(
         user.fullName,
-        `${req.protocol}://${req.get("host")}/api/v1/users/verify-email/${unHashedToken}`,
+        `${process.env.PUBLIC_API_URL}/api/v1/auth/verify-email/${unHashedToken}`,
       ),
     });
   } catch (error) {
@@ -69,7 +69,7 @@ const registerUser = asyncHandler(async (req, res) => {
   if (!createdUser) {
     throw new ApiError(500, "Something went wrong while registering a user");
   }
-  logger.info({ userId: user._id, email: user.email }, "New user registered");
+  logger.info({ userId: user._id }, "New user registered");
   return res
     .status(201)
     .json(
@@ -122,8 +122,6 @@ const login = asyncHandler(async (req, res) => {
         200,
         {
           user: loggedInUser,
-          accessToken,
-          refreshToken,
         },
         "User logged in successfully",
       ),
@@ -132,7 +130,7 @@ const login = asyncHandler(async (req, res) => {
 
 const logoutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
-    req.user_id,
+    req.user._id,
     {
       $set: {
         refreshToken: "",
@@ -162,7 +160,6 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 
 const verifyEmail = asyncHandler(async (req, res) => {
   const { verficationToken } = req.params;
-  console.log(verficationToken);
   if (!verficationToken) {
     throw new ApiError(400, "Email verification token is missing");
   }
@@ -219,7 +216,7 @@ const resendEmailVerification = asyncHandler(async (req, res) => {
     subject: "Please verify your email",
     mailgenContent: emailVerificationMailGenContent(
       user.fullName,
-      `${req.protocol}://${req.get("host")}/api/v1/users/verify-email/${unHashedToken}`,
+      `${process.env.PUBLIC_API_URL}/api/v1/auth/verify-email/${unHashedToken}`,
     ),
   });
 
@@ -266,13 +263,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       .status(200)
       .cookie("accessToken", accessToken, options)
       .cookie("refreshToken", newRefreshToken, options)
-      .json(
-        new ApiResponse(
-          200,
-          { accessToken, refreshToken: newRefreshToken },
-          "Access token refreshed",
-        ),
-      );
+      .json(new ApiResponse(200, {}, "Access token refreshed"));
   } catch (error) {
     throw new ApiError(401, error?.message || "Invalid refresh token");
   }

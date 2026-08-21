@@ -1,7 +1,6 @@
 import { body } from "express-validator";
 
 const userRegisterValidator = () => {
-  console.log("HelloWorld");
   return [
     body("email")
       .trim()
@@ -9,15 +8,12 @@ const userRegisterValidator = () => {
       .withMessage("Email is required")
       .isEmail()
       .withMessage("Email is invalid"),
-    // body("username")
-    //   .trim()
-    //   .notEmpty()
-    //   .withMessage("Username is required")
-    //   .isLowercase()
-    //   .withMessage("Username must be in lower case")
-    //   .isLength({ min: 3 })
-    //   .withMessage("Username must be atleast 3 characters long"),
-    body("password").trim().notEmpty().withMessage("Password is required"),
+    body("password")
+      .trim()
+      .notEmpty()
+      .withMessage("Password is required")
+      .isLength({ min: 12 })
+      .withMessage("Password must be at least 12 characters long"),
     body("fullName").trim(),
   ];
 };
@@ -58,7 +54,11 @@ const updateNoteValidator = () => {
       .isLength({ min: 3, max: 100 })
       .withMessage("Title must be between 3 and 100 characters"),
 
-    body("content").optional().trim(),
+    body("content")
+      .optional()
+      .trim()
+      .notEmpty()
+      .withMessage("Content cannot be empty"),
 
     body("tags").optional().isArray().withMessage("Tags must be an array"),
   ];
