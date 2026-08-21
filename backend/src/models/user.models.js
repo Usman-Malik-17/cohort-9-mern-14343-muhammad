@@ -57,7 +57,7 @@ userSchema.pre("save", async function () {
   try {
     this.password = await bcrypt.hash(this.password, 10);
   } catch (error) {
-    throw new Error("Failed to hash password");
+    throw new Error("Failed to hash password", { cause: error });
   }
 });
 
@@ -65,7 +65,7 @@ userSchema.methods.isPasswordCorrect = async function (password) {
   try {
     return await bcrypt.compare(password, this.password);
   } catch (error) {
-    throw new Error("Failed to compare password");
+    throw new Error("Failed to compare password", { cause: error });
   }
 };
 

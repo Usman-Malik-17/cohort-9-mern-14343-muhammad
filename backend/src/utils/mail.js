@@ -1,6 +1,5 @@
 import Mailgen from "mailgen";
 import nodemailer from "nodemailer";
-import { ApiError } from "../utils/api-error.js";
 import logger from "../utils/logger.js";
 
 const sendEmail = async (options) => {
