@@ -43,14 +43,24 @@ const registerUser = asyncHandler(async (req, res) => {
   user.emailVerificationExpiry = tokenExpiry;
   await user.save({ validateBeforeSave: false });
 
-  await sendEmail({
-    email: user?.email,
-    subject: "Please verify your email",
-    mailgenContent: emailVerificationMailGenContent(
-      user.fullName,
-      `${req.protocol}://${req.get("host")}/api/v1/users/verify-email/${unHashedToken}`,
-    ),
-  });
+  let emailSent = true;
+
+  try {
+    await sendEmail({
+      email: user?.email,
+      subject: "Please verify your email",
+      mailgenContent: emailVerificationMailGenContent(
+        user.fullName,
+        `${req.protocol}://${req.get("host")}/api/v1/users/verify-email/${unHashedToken}`,
+      ),
+    });
+  } catch (error) {
+    emailSent = false;
+    logger.error(
+      { userId: user._id, err: error },
+      "Failed to send verification email during registration",
+    );
+  }
 
   const createdUser = await User.findById(user._id).select(
     "-password -refreshToken -emailVerificationToken -emailVerificationExpiry",
@@ -66,7 +76,9 @@ const registerUser = asyncHandler(async (req, res) => {
       new ApiResponse(
         201,
         { user: createdUser },
-        "User registered successfully and verification email has been sent on your email",
+        emailSent
+          ? "User registered successfully and verification email has been sent on your email"
+          : "User registered successfully, but we couldn't send the verification email. Please use the resend option.",
       ),
     );
 });
@@ -265,7 +277,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     throw new ApiError(401, error?.message || "Invalid refresh token");
   }
 });
-
 
 export {
   registerUser,

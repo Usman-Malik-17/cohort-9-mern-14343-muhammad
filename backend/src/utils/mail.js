@@ -1,5 +1,7 @@
 import Mailgen from "mailgen";
 import nodemailer from "nodemailer";
+import { ApiError } from "../utils/api-error.js";
+import logger from "../utils/logger.js";
 
 const sendEmail = async (options) => {
   const mailGenerator = new Mailgen({
@@ -33,10 +35,11 @@ const sendEmail = async (options) => {
   try {
     await transporter.sendMail(mail);
   } catch (error) {
-    console.error(
-      "Email service failed silently. Make sure that you have provided your MAILTRAP credentials in the .env file",
+    logger.error(
+      { err: error },
+      "Email service failed. Make sure MAILTRAP credentials are correct.",
     );
-    console.error("Error: ", error);
+    throw error;
   }
 };
 
