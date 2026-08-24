@@ -45,28 +45,24 @@ const registerUser = asyncHandler(async (req, res) => {
 
   let emailSent = true;
 
-  // try {
-  //   await sendEmail({
-  //     email: user?.email,
-  //     subject: "Please verify your email",
-  //     mailgenContent: emailVerificationMailGenContent(
-  //       user.fullName,
-  //       `${process.env.PUBLIC_API_URL}/api/v1/auth/verify-email/${unHashedToken}`,
-  //     ),
-  //   });
-  // } catch (error) {
-  //   emailSent = false;
-  //   logger.error(
-  //     { userId: user._id, err: error },
-  //     "Failed to send verification email during registration",
-  //   );
-  // }
+  try {
+    await sendEmail({
+      email: user?.email,
+      subject: "Please verify your email",
+      mailgenContent: emailVerificationMailGenContent(
+        user.fullName,
+        `${process.env.PUBLIC_API_URL}/api/v1/auth/verify-email/${unHashedToken}`,
+      ),
+    });
+  } catch (error) {
+    emailSent = false;
+    logger.error(
+      { userId: user._id, err: error },
+      "Failed to send verification email during registration",
+    );
+  }
 
   const createdUser = await User.findById(user._id);
-
-  // select(
-  //   "-password -refreshToken -emailVerificationToken -emailVerificationExpiry",
-  // );
 
   if (!createdUser) {
     throw new ApiError(500, "Something went wrong while registering a user");
@@ -105,10 +101,6 @@ const login = asyncHandler(async (req, res) => {
     user._id,
   );
   const loggedInUser = await User.findById(user._id);
-
-  // select(
-  //   "-password -refreshToken -emailVerificationToken -emailVerificationExpiry",
-  // );
 
   logger.info({ userId: user._id }, "User logged in successfully");
 
