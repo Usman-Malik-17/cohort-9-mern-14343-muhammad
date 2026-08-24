@@ -1,19 +1,11 @@
-import dotenv from "dotenv";
 import mongoose from "mongoose";
 import { expect } from "chai";
 import request from "supertest";
 import app from "../src/app.js";
 
-dotenv.config({ path: "./.env" });
-
 describe("Auth - Register", function () {
-  before(async function () {
-    await mongoose.connect(process.env.MONGO_URI_TEST);
-  });
-
   after(async function () {
     await mongoose.connection.collection("users").deleteMany({});
-    await mongoose.connection.close();
   });
 
   it("should register a new user successfully", async function () {

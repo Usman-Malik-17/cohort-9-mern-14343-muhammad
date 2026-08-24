@@ -1,17 +1,14 @@
-import dotenv from "dotenv";
 import mongoose from "mongoose";
 import { expect } from "chai";
 import request from "supertest";
 import app from "../src/app.js";
-
-dotenv.config({ path: "./.env" });
 
 describe("Notes", function () {
   let agent;
   let noteId;
 
   before(async function () {
-    await mongoose.connect(process.env.MONGO_URI_TEST);
+    // await mongoose.connect(process.env.MONGO_URI_TEST);
 
     agent = request.agent(app);
 
@@ -32,7 +29,6 @@ describe("Notes", function () {
   after(async function () {
     await mongoose.connection.collection("notes").deleteMany({});
     await mongoose.connection.collection("users").deleteMany({});
-    await mongoose.connection.close();
   });
 
   it("should create a note successfully", async function () {
