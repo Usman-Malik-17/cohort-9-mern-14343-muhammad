@@ -45,22 +45,22 @@ const registerUser = asyncHandler(async (req, res) => {
 
   let emailSent = true;
 
-  try {
-    await sendEmail({
-      email: user?.email,
-      subject: "Please verify your email",
-      mailgenContent: emailVerificationMailGenContent(
-        user.fullName,
-        `${process.env.PUBLIC_API_URL}/api/v1/auth/verify-email/${unHashedToken}`,
-      ),
-    });
-  } catch (error) {
-    emailSent = false;
-    logger.error(
-      { userId: user._id, err: error },
-      "Failed to send verification email during registration",
-    );
-  }
+  // try {
+  //   await sendEmail({
+  //     email: user?.email,
+  //     subject: "Please verify your email",
+  //     mailgenContent: emailVerificationMailGenContent(
+  //       user.fullName,
+  //       `${process.env.PUBLIC_API_URL}/api/v1/auth/verify-email/${unHashedToken}`,
+  //     ),
+  //   });
+  // } catch (error) {
+  //   emailSent = false;
+  //   logger.error(
+  //     { userId: user._id, err: error },
+  //     "Failed to send verification email during registration",
+  //   );
+  // }
 
   const createdUser = await User.findById(user._id);
 
@@ -168,7 +168,10 @@ const verifyEmail = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Email verification token is missing");
   }
 
-  const hashedToken = crypto.createHash("sha256").update(verficationToken).digest("hex");
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(verficationToken)
+    .digest("hex");
 
   const user = await User.findOne({
     emailVerificationToken: hashedToken,
@@ -184,9 +187,9 @@ const verifyEmail = asyncHandler(async (req, res) => {
   user.isEmailVerified = true;
   await user.save({ validateBeforeSave: false });
 
-  return res.status(200).json(
-    new ApiResponse(200, { isEmailVerified: true }, "Email is verified"),
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { isEmailVerified: true }, "Email is verified"));
 });
 
 const resendEmailVerification = asyncHandler(async (req, res) => {

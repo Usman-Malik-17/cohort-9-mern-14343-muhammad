@@ -24,6 +24,6 @@ export const verifyJwt = asyncHandler(async (req, res, next) => {
     next();
   } catch (error) {
     logger.error({ err: error }, "Auth verification failed");
-    throw new ApiError(401, "Invalid access token2");
+    throw new ApiError(401, "Invalid access token");
   }
 });
