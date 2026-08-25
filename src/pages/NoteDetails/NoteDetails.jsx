@@ -1,102 +1,4 @@
-// import { useParams, Link, useNavigate } from "react-router";
-// import { useEffect, useState } from "react";
-// import api from "../../api/axios";
-
-// function NoteDetails() {
-//   const [currentUser, setCurrentUser] = useState(null);
-//   const [title, setTitle] = useState("");
-//   const [tagInput, setTagInput] = useState("");
-//   const [content, setContent] = useState("");
-//   const navigate = useNavigate();
-//   let params = useParams();
-//   const { id } = params;
-
-//   useEffect(() => {
-//     async function loadNoteDeatils() {
-//       try {
-//         const userResponse = await api.post("/auth/current-user");
-//         setCurrentUser(userResponse.data.data);
-//         console.log(userResponse.data.data);
-//         console.log(id);
-//         const userNote = await api.get(`/notes/${id}`);
-//         // console.log(userNote.data.data);
-//         const note = userNote.data.data;
-//         setTitle(note.title);
-//         setContent(note.content);
-//         setTagInput(Array.isArray(note.tags) ? note.tags.join(", ") : "");
-//       } catch (error) {
-//         console.error(error);
-//         navigate("/not-found");
-//       }
-//     }
-//     loadNoteDeatils();
-//   }, []);
-
-//   if (!currentUser) {
-//     return null;
-//   }
-
-//   const deleteNote = async () => {
-//     if (window.confirm("Delete this note?")) {
-//       try {
-//         await api.delete(`/notes/${id}`);
-//         navigate("/dashboard");
-//       } catch (error) {
-//         console.error(error);
-//         navigate("/");
-//       }
-//     }
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-8">
-//       <div className="w-full max-w-3xl bg-white rounded-xl shadow-sm border border-gray-200">
-//         {/* Top bar */}
-//         <div className="p-5">
-//           <div className="min-h-8 w-full rounded border border-dashed border-gray-300 bg-gray-50 text-3xl font-bold text-gray-900 leading-tight flex items-center">
-//             {title}
-//           </div>
-//         </div>
-
-//         <div className="border-t border-gray-200"></div>
-
-//         {/* Middle content */}
-//         <div className="p-5">
-//           <div
-//             className="h-auto w-full rounded border border-dashed border-gray-300 bg-gray-50 text-base text-gray-700 leading-8 whitespace-pre-wrap flex flex-col note-content"
-//             dangerouslySetInnerHTML={{ __html: content }}
-//           ></div>
-//         </div>
-
-//         <div className="border-t border-gray-200"></div>
-
-//         {/* Bottom bar */}
-//         <div className="p-5">
-//           <div className="flex justify-between items-center min-h-8 w-full rounded border border-dashed border-gray-300 bg-gray-50 text-sm font-medium text-gray-500 flex items-center">
-//             {tagInput}
-//             <div className="flex gap-2">
-//               <Link
-//                 className="inline-flex w-8 h-8 rounded-lg text-sm border border-black/10 justify-center items-center bg-gray-50 hover:bg-gray-100 shrink-0 disabled:opacity-50"
-//                 to={`/notes/edit/${id}`}
-//               >
-//                 ✏️
-//               </Link>
-//               <button
-//                 className="inline-flex w-8 h-8 rounded-lg text-sm border border-black/10 justify-center items-center bg-gray-50 hover:bg-gray-100 shrink-0"
-//                 onClick={deleteNote}
-//               >
-//                 ❌
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default NoteDetails;
-
+import DOMPurify from "dompurify";
 import { useParams, Link, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import api from "../../api/axios";
@@ -116,6 +18,13 @@ function NoteDetails() {
       try {
         const userResponse = await api.post("/auth/current-user");
         setCurrentUser(userResponse.data.data);
+      } catch (error) {
+        console.error(error);
+        navigate("/");
+        return;
+      }
+
+      try {
         const userNote = await api.get(`/notes/${id}`);
         const note = userNote.data.data;
         setTitle(note.title);
@@ -126,6 +35,7 @@ function NoteDetails() {
         navigate("/not-found");
         return;
       }
+
       setPageLoading(false);
     }
     loadNoteDetails();
@@ -168,7 +78,7 @@ function NoteDetails() {
         <div className="p-5">
           <div
             className="h-auto w-full rounded border border-dashed border-gray-300 bg-gray-50 text-base text-gray-700 leading-8 whitespace-pre-wrap flex flex-col note-content"
-            dangerouslySetInnerHTML={{ __html: content }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
           ></div>
         </div>
         <div className="border-t border-gray-200"></div>
@@ -186,13 +96,13 @@ function NoteDetails() {
             {tagInput}
             <div className="flex gap-2">
               <Link
-                className="inline-flex w-8 h-8 rounded-lg text-sm border border-black/10 justify-center items-center bg-gray-50 hover:bg-gray-100 shrink-0 disabled:opacity-50"
+                className="inline-flex w-8 h-8 rounded-lg text-sm border border-black/10 justify-center items-center bg-gray-50 hover:bg-gray-100 shrink-0 disabled:opacity-50 cursor-pointer"
                 to={`/notes/edit/${id}`}
               >
                 ✏️
               </Link>
               <button
-                className="inline-flex w-8 h-8 rounded-lg text-sm border border-black/10 justify-center items-center bg-gray-50 hover:bg-gray-100 shrink-0"
+                className="inline-flex w-8 h-8 rounded-lg text-sm border border-black/10 justify-center items-center bg-gray-50 hover:bg-gray-100 shrink-0 cursor-pointer"
                 onClick={deleteNote}
               >
                 ❌
