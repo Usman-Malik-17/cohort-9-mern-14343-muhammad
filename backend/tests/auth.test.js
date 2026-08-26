@@ -182,4 +182,30 @@ describe("Auth - Register", function () {
     expect(response.status).to.equal(422);
     expect(response.body.success).to.equal(false);
   });
+
+  it("should reject refresh token request without a token", async function () {
+    const response = await request(app)
+      .post("/api/v1/auth/refresh-token")
+      .send({});
+
+    expect(response.status).to.equal(401);
+    expect(response.body.success).to.equal(false);
+  });
+
+  it("should reject email verification with invalid token", async function () {
+    const response = await request(app).get(
+      "/api/v1/auth/verify-email/invalidtoken123",
+    );
+
+    expect(response.status).to.equal(400);
+    expect(response.body.success).to.equal(false);
+  });
+
+  it("should reject resend email verification without authentication", async function () {
+    const response = await request(app).post(
+      "/api/v1/auth/resend-email-verification",
+    );
+
+    expect(response.status).to.equal(401);
+  });
 });
