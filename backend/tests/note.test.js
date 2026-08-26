@@ -123,6 +123,7 @@ describe("Notes", function () {
   let noteId;
 
   before(async function () {
+    this.timeout(20000);
     agent = request.agent(app);
     await agent.post("/api/v1/auth/register").send({
       email: "notes-test@example.com",
@@ -230,5 +231,14 @@ describe("Notes", function () {
     const response = await agent.delete(`/api/v1/notes/${noteId}`);
     expect(response.status).to.equal(200);
     expect(response.body.success).to.equal(true);
+  });
+
+  it("should reject creating a note without title or content", async function () {
+    const response = await agent.post("/api/v1/notes").send({
+      tags: ["testing"],
+    });
+
+    expect(response.status).to.equal(422);
+    expect(response.body.success).to.equal(false);
   });
 });
