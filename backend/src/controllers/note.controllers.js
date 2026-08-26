@@ -3,18 +3,18 @@ import { ApiResponse } from "../utils/api-response.js";
 import { ApiError } from "../utils/api-error.js";
 import { asyncHandler } from "../utils/async-handler.js";
 import logger from "../utils/logger.js";
-import mongoose, { Schema } from "mongoose";
+import mongoose from "mongoose";
 
 const getAllNotes = asyncHandler(async (req, res) => {
-  const notes = await Note.find({ createdBy: req?.user._id });
-  logger.info({ userId: req?.user._id }, "Notes Fetched sucessfully");
+  const notes = await Note.find({ createdBy: req.user._id });
+  logger.info({ userId: req.user._id }, "Notes Fetched sucessfully");
   return res
     .status(200)
     .json(new ApiResponse(200, notes, "Notes has been fetched successfully"));
 });
 
 const getNoteById = asyncHandler(async (req, res) => {
-  const { noteId } = req?.params;
+  const { noteId } = req.params;
   if (!noteId) {
     throw new ApiError(400, "Note Id is missing");
   }
@@ -25,13 +25,13 @@ const getNoteById = asyncHandler(async (req, res) => {
 
   const note = await Note.findOne({
     _id: noteId,
-    createdBy: req?.user._id,
+    createdBy: req.user._id,
   });
   if (!note) {
     throw new ApiError(404, "Note does not exist or invalid access");
   }
   logger.info(
-    { noteId: note._id, userId: req?.user._id },
+    { noteId: note._id, userId: req.user._id },
     "Note has been fetched sucessfully",
   );
   return res
@@ -40,7 +40,7 @@ const getNoteById = asyncHandler(async (req, res) => {
 });
 
 const createNote = asyncHandler(async (req, res) => {
-  const { title, content, tags } = req?.body || {};
+  const { title, content, tags } = req.body || {};
   if (!title || !content) {
     throw new ApiError(400, "Title and content is required");
   }
@@ -49,10 +49,10 @@ const createNote = asyncHandler(async (req, res) => {
     title,
     content,
     tags,
-    createdBy: req?.user._id,
+    createdBy: req.user._id,
   });
 
-  logger.info({ noteId: note._id, userId: req?.user._id }, "Note created");
+  logger.info({ noteId: note._id, userId: req.user._id }, "Note created");
   return res
     .status(201)
     .json(new ApiResponse(201, note, "Note has been created"));
@@ -60,7 +60,7 @@ const createNote = asyncHandler(async (req, res) => {
 
 const updateNote = asyncHandler(async (req, res) => {
   const { noteId } = req?.params;
-  const { title, content, tags } = req?.body || {};
+  const { title, content, tags } = req.body || {};
 
   if (!noteId) {
     throw new ApiError(400, "Note Id is missing");
@@ -78,7 +78,7 @@ const updateNote = asyncHandler(async (req, res) => {
   }
 
   const updatedNote = await Note.findOneAndUpdate(
-    { _id: noteId, createdBy: req?.user._id },
+    { _id: noteId, createdBy: req.user._id },
     { $set: { title, content, tags } },
     { new: true, runValidators: true },
   );
@@ -87,7 +87,7 @@ const updateNote = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Note does not exist or invalid access");
   }
 
-  logger.info({ noteId: noteId, userId: req?.user._id }, "Note updated");
+  logger.info({ noteId: noteId, userId: req.user._id }, "Note updated");
 
   return res
     .status(200)
@@ -97,7 +97,7 @@ const updateNote = asyncHandler(async (req, res) => {
 });
 
 const deleteNote = asyncHandler(async (req, res) => {
-  const { noteId } = req?.params;
+  const { noteId } = req.params;
 
   if (!noteId) {
     throw new ApiError(400, "Note Id is missing");
@@ -109,14 +109,14 @@ const deleteNote = asyncHandler(async (req, res) => {
 
   const deletedNote = await Note.findOneAndDelete({
     _id: noteId,
-    createdBy: req?.user._id,
+    createdBy: req.user._id,
   });
 
   if (!deletedNote) {
     throw new ApiError(404, "Note does not exist or invalid access");
   }
 
-  logger.info({ noteId: noteId, userId: req?.user._id }, "Note deleted");
+  logger.info({ noteId: noteId, userId: req.user._id }, "Note deleted");
 
   return res
     .status(200)

@@ -19,7 +19,7 @@ function Signup() {
     const normalizedEmail = email.trim().toLowerCase();
     const normalizedName = fullName.trim();
     const nameRegex = /^[A-Za-z\s]+$/;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+$/;
 
     if (!nameRegex.test(normalizedName)) {
       setError("Only alphabets are allowed in name");
