@@ -41,9 +41,9 @@ const getNoteById = asyncHandler(async (req, res) => {
 
 const createNote = asyncHandler(async (req, res) => {
   const { title, content, tags } = req.body || {};
-  if (!title || !content) {
-    throw new ApiError(400, "Title and content is required");
-  }
+  // if (!title || !content) {
+  //   throw new ApiError(400, "Title and content is required");
+  // }
 
   const note = await Note.create({
     title,
