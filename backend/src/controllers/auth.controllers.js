@@ -53,22 +53,22 @@ const registerUser = asyncHandler(async (req, res) => {
 
   let emailSent = true;
 
-  // try {
-  //   await sendEmail({
-  //     email: user?.email,
-  //     subject: "Please verify your email",
-  //     mailgenContent: emailVerificationMailGenContent(
-  //       user.fullName,
-  //       `${process.env.PUBLIC_API_URL}/api/v1/auth/verify-email/${unHashedToken}`,
-  //     ),
-  //   });
-  // } catch (error) {
-  //   emailSent = false;
-  //   logger.error(
-  //     { userId: user._id, err: error },
-  //     "Failed to send verification email during registration",
-  //   );
-  // }
+  try {
+    await sendEmail({
+      email: user?.email,
+      subject: "Please verify your email",
+      mailgenContent: emailVerificationMailGenContent(
+        user.fullName,
+        `${process.env.PUBLIC_API_URL}/api/v1/auth/verify-email/${unHashedToken}`,
+      ),
+    });
+  } catch (error) {
+    emailSent = false;
+    logger.error(
+      { userId: user._id, err: error },
+      "Failed to send verification email during registration",
+    );
+  }
 
   const createdUser = await User.findById(user._id);
 
@@ -213,14 +213,14 @@ const resendEmailVerification = asyncHandler(async (req, res) => {
 
   await user.save({ validateBeforeSave: false });
 
-  // await sendEmail({
-  //   email: user?.email,
-  //   subject: "Please verify your email",
-  //   mailgenContent: emailVerificationMailGenContent(
-  //     user.fullName,
-  //     `${process.env.PUBLIC_API_URL}/api/v1/auth/verify-email/${unHashedToken}`,
-  //   ),
-  // });
+  await sendEmail({
+    email: user?.email,
+    subject: "Please verify your email",
+    mailgenContent: emailVerificationMailGenContent(
+      user.fullName,
+      `${process.env.PUBLIC_API_URL}/api/v1/auth/verify-email/${unHashedToken}`,
+    ),
+  });
 
   return res
     .status(200)
