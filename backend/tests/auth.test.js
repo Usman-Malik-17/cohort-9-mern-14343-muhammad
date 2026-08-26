@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { expect } from "chai";
 import request from "supertest";
 import app from "../src/app.js";
+import { User } from "../src/models/user.models.js";
 
 describe("Auth - Register", function () {
   after(async function () {
@@ -207,5 +208,33 @@ describe("Auth - Register", function () {
     );
 
     expect(response.status).to.equal(401);
+  });
+
+  it("should handle error while generating access and refresh tokens", async function () {
+    const user = {
+      email: "token-error@example.com",
+      password: "Test@12345678",
+      fullName: "Token Error User",
+    };
+
+    await request(app).post("/api/v1/auth/register").send(user);
+
+    const originalFindById = User.findById;
+
+    User.findById = async function () {
+      throw new Error("Database error");
+    };
+
+    try {
+      const response = await request(app).post("/api/v1/auth/login").send({
+        email: user.email,
+        password: user.password,
+      });
+
+      expect(response.status).to.equal(500);
+      expect(response.body.success).to.equal(false);
+    } finally {
+      User.findById = originalFindById;
+    }
   });
 });
