@@ -12,9 +12,11 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
-    "test": "cross-env NODE_ENV=test mocha --timeout 10000"
+    "test": "cross-env NODE_ENV=test mocha --timeout 10000",
+    "test:coverage": "cross-env NODE_ENV=test c8 --reporter=lcov --reporter=text mocha --timeout 10000"
   },
   "devDependencies": {
+    "c8": "^12.0.0",
     "chai": "^6.2.2",
     "cross-env": "^10.1.0",
     "mocha": "^11.8.0",

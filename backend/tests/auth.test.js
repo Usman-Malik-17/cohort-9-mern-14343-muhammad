@@ -157,4 +157,29 @@ describe("Auth - Register", function () {
     expect(response.status).to.equal(200);
     expect(response.body.success).to.equal(true);
   });
+
+  it("should reject registration with non-string email or password", async function () {
+    const response = await request(app)
+      .post("/api/v1/auth/register")
+      .send({
+        email: { $gt: "" },
+        password: "Test@12345678",
+        fullName: "Injection Test",
+      });
+
+    expect(response.status).to.equal(422);
+    expect(response.body.success).to.equal(false);
+  });
+
+  it("should reject login with non-string email or password", async function () {
+    const response = await request(app)
+      .post("/api/v1/auth/login")
+      .send({
+        email: { $ne: null },
+        password: "anything",
+      });
+
+    expect(response.status).to.equal(422);
+    expect(response.body.success).to.equal(false);
+  });
 });
