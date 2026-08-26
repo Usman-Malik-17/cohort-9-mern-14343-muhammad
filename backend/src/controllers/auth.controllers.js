@@ -25,6 +25,14 @@ const generateAccessAndRefreshTokens = async (userId) => {
 
 const registerUser = asyncHandler(async (req, res) => {
   const { email, password, fullName } = req.body;
+
+  if (
+    typeof email !== "string" ||
+    typeof password !== "string" ||
+    typeof fullName !== "string"
+  ) {
+    throw new ApiError(400, "Invalid input format");
+  }
   const existedUser = await User.findOne({ email });
   if (existedUser) {
     throw new ApiError(409, "User with email already exists", []);
@@ -83,6 +91,10 @@ const registerUser = asyncHandler(async (req, res) => {
 
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
+
+  if (typeof email !== "string" || typeof password !== "string") {
+    throw new ApiError(400, "Invalid input format");
+  }
   if (!email && !password) {
     throw new ApiError(400, "Email and password is required");
   }

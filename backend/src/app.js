@@ -6,14 +6,13 @@ import logger from "./utils/logger.js";
 import { ApiError } from "./utils/api-error.js";
 
 const app = express();
+app.disable("x-powered-by");
 
 app.use(pinoHttp({ logger }));
 
 // basic configurations
 app.use(express.json({ limit: "16kb" }));
-
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
-
 app.use(express.static("public"));
 app.use(cookieParser());
 
