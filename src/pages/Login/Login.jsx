@@ -15,7 +15,7 @@ function Login() {
     setMessage("");
     setError("");
     const normalizedEmail = email.trim().toLowerCase();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+$/;
 
     if (!emailRegex.test(normalizedEmail)) {
       setError("Please enter a valid email address.");

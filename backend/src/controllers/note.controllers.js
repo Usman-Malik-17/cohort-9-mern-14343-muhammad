@@ -59,7 +59,7 @@ const createNote = asyncHandler(async (req, res) => {
 });
 
 const updateNote = asyncHandler(async (req, res) => {
-  const { noteId } = req?.params;
+  const { noteId } = req.params;
   const { title, content, tags } = req.body || {};
 
   if (!noteId) {
