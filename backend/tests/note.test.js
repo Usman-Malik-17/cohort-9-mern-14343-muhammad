@@ -2,7 +2,12 @@ import mongoose from "mongoose";
 import { expect } from "chai";
 import request from "supertest";
 import app from "../src/app.js";
-
+import sinon from "sinon";
+import {
+  getNoteById,
+  updateNote,
+  deleteNote,
+} from "../src/controllers/note.controllers.js";
 // describe("Notes", function () {
 //   let agent;
 //   let noteId;
@@ -240,5 +245,46 @@ describe("Notes", function () {
 
     expect(response.status).to.equal(422);
     expect(response.body.success).to.equal(false);
+  });
+});
+
+describe("Note controllers - unit (missing noteId)", function () {
+  it("getNoteById should reject when noteId param is missing", async function () {
+    const req = { params: {}, user: { _id: "64f0000000000000000000aa" } };
+    const res = {};
+    const next = sinon.spy();
+
+    await getNoteById(req, res, next);
+
+    expect(next.calledOnce).to.be.true;
+    const err = next.firstCall.args[0];
+    expect(err.statusCode).to.equal(400);
+    expect(err.message).to.equal("Note Id is missing");
+  });
+
+  it("updateNote should reject when noteId param is missing", async function () {
+    const req = {
+      params: {},
+      body: { title: "x" },
+      user: { _id: "64f0000000000000000000aa" },
+    };
+    const res = {};
+    const next = sinon.spy();
+
+    await updateNote(req, res, next);
+
+    expect(next.calledOnce).to.be.true;
+    expect(next.firstCall.args[0].statusCode).to.equal(400);
+  });
+
+  it("deleteNote should reject when noteId param is missing", async function () {
+    const req = { params: {}, user: { _id: "64f0000000000000000000aa" } };
+    const res = {};
+    const next = sinon.spy();
+
+    await deleteNote(req, res, next);
+
+    expect(next.calledOnce).to.be.true;
+    expect(next.firstCall.args[0].statusCode).to.equal(400);
   });
 });
