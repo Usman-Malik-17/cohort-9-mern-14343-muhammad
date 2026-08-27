@@ -25,6 +25,14 @@ const generateAccessAndRefreshTokens = async (userId) => {
 
 const registerUser = asyncHandler(async (req, res) => {
   const { email, password, fullName } = req.body;
+
+  if (
+    typeof email !== "string" ||
+    typeof password !== "string" ||
+    typeof fullName !== "string"
+  ) {
+    throw new ApiError(400, "Invalid input format");
+  }
   const existedUser = await User.findOne({ email });
   if (existedUser) {
     throw new ApiError(409, "User with email already exists", []);
@@ -64,10 +72,6 @@ const registerUser = asyncHandler(async (req, res) => {
 
   const createdUser = await User.findById(user._id);
 
-  // select(
-  //   "-password -refreshToken -emailVerificationToken -emailVerificationExpiry",
-  // );
-
   if (!createdUser) {
     throw new ApiError(500, "Something went wrong while registering a user");
   }
@@ -87,6 +91,10 @@ const registerUser = asyncHandler(async (req, res) => {
 
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
+
+  if (typeof email !== "string" || typeof password !== "string") {
+    throw new ApiError(400, "Invalid input format");
+  }
   if (!email && !password) {
     throw new ApiError(400, "Email and password is required");
   }
@@ -105,10 +113,6 @@ const login = asyncHandler(async (req, res) => {
     user._id,
   );
   const loggedInUser = await User.findById(user._id);
-
-  // select(
-  //   "-password -refreshToken -emailVerificationToken -emailVerificationExpiry",
-  // );
 
   logger.info({ userId: user._id }, "User logged in successfully");
 
@@ -168,7 +172,10 @@ const verifyEmail = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Email verification token is missing");
   }
 
-  const hashedToken = crypto.createHash("sha256").update(verficationToken).digest("hex");
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(verficationToken)
+    .digest("hex");
 
   const user = await User.findOne({
     emailVerificationToken: hashedToken,
@@ -184,9 +191,9 @@ const verifyEmail = asyncHandler(async (req, res) => {
   user.isEmailVerified = true;
   await user.save({ validateBeforeSave: false });
 
-  return res.status(200).json(
-    new ApiResponse(200, { isEmailVerified: true }, "Email is verified"),
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { isEmailVerified: true }, "Email is verified"));
 });
 
 const resendEmailVerification = asyncHandler(async (req, res) => {

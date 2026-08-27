@@ -1,3 +1,6 @@
+.scannerwork/
+coverage/
+.env
 # Logs
 logs
 *.log

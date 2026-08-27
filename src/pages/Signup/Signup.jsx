@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import { getUsers, setUsers } from "../../helpers/users";
+import api from "../../api/axios";
 
 function Signup() {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -10,56 +10,56 @@ function Signup() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  function handleSubmit() {
+  async function handleSubmit() {
+    setError("");
     const normalizedEmail = email.trim().toLowerCase();
     const normalizedName = fullName.trim();
-
     const nameRegex = /^[A-Za-z\s]+$/;
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+$/;
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!nameRegex.test(normalizedName)) {
-      alert("Only alphabets are allowed in name");
+      setError("Only alphabets are allowed in name");
       return;
     }
-
     if (!emailRegex.test(normalizedEmail)) {
-      alert("Please enter a valid email address.");
+      setError("Please enter a valid email address.");
       return;
     }
-    if (!passwordRegex.test(password)) {
-      alert(
-        "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character",
-      );
+    if (password.length < 12) {
+      setError("Password must be at least 12 characters long");
       return;
     }
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
-      return;
-    }
-    const users = getUsers();
-
-    const existingUser = users.find((user) => user.email === normalizedEmail);
-
-    if (existingUser) {
-      alert("Email already exists");
+      setError("Passwords do not match");
       return;
     }
 
-    const user = {
-      name: normalizedName,
-      email: normalizedEmail,
-      password,
-    };
-
-    users.push(user);
-    setUsers(users);
-
-    navigate("/");
+    setLoading(true);
+    try {
+      await api.post("/auth/register", {
+        email: normalizedEmail,
+        fullName: normalizedName,
+        password,
+      });
+      navigate("/", {
+        state: {
+          message:
+            "Account created! Please check your email to verify your account, then log in.",
+        },
+      });
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Signup failed. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
   }
+
   return (
     <>
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -78,8 +78,12 @@ function Signup() {
               </Link>
             </div>
           </div>
-
           <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+            {error && (
+              <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
+                {error}
+              </div>
+            )}
             <form
               className="space-y-6"
               onSubmit={(e) => {
@@ -107,7 +111,6 @@ function Signup() {
                   />
                 </div>
               </div>
-
               <div>
                 <label
                   htmlFor="email"
@@ -128,16 +131,13 @@ function Signup() {
                   />
                 </div>
               </div>
-
               <div>
-                <div>
-                  <label
-                    htmlFor="new-password"
-                    className="block text-sm font-medium text-gray-900"
-                  >
-                    Enter Password
-                  </label>
-                </div>
+                <label
+                  htmlFor="new-password"
+                  className="block text-sm font-medium text-gray-900"
+                >
+                  Enter Password
+                </label>
                 <div className="mt-2 relative">
                   <input
                     id="new-password"
@@ -157,20 +157,17 @@ function Signup() {
                       <Eye className="absolute right-2 top-1/3 -translate-y-1/2 text-gray-500 hover:text-gray-700 cursor-pointer" />
                     ) : (
                       <EyeOff className="absolute right-2 top-1/3 -translate-y-1/2 text-gray-500 hover:text-gray-700 cursor-pointer" />
-                    )}{" "}
+                    )}
                   </button>
                 </div>
               </div>
-
               <div>
-                <div>
-                  <label
-                    htmlFor="confirm-password"
-                    className="block text-sm font-medium text-gray-900"
-                  >
-                    Confirm Password
-                  </label>
-                </div>
+                <label
+                  htmlFor="confirm-password"
+                  className="block text-sm font-medium text-gray-900"
+                >
+                  Confirm Password
+                </label>
                 <div className="mt-2 relative">
                   <input
                     id="confirm-password"
@@ -190,17 +187,17 @@ function Signup() {
                       <Eye className="absolute right-2 top-1/3 -translate-y-1/2 text-gray-500 hover:text-gray-700 cursor-pointer" />
                     ) : (
                       <EyeOff className="absolute right-2 top-1/3 -translate-y-1/2 text-gray-500 hover:text-gray-700 cursor-pointer" />
-                    )}{" "}
+                    )}
                   </button>
                 </div>
               </div>
-
               <div>
                 <button
                   type="submit"
-                  className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500"
+                  disabled={loading}
+                  className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 disabled:opacity-50"
                 >
-                  Create Account
+                  {loading ? "Creating account..." : "Create Account"}
                 </button>
               </div>
             </form>

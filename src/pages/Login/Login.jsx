@@ -1,31 +1,43 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { getUsers } from "../../helpers/users";
-import { setCurrentUser } from "../../helpers/profile";
+import api from "../../api/axios";
 
 function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const location = useLocation();
+  const [message, setMessage] = useState(location.state?.message || "");
 
-  function handleSubmit() {
+  async function handleSubmit() {
+    setMessage("");
+    setError("");
     const normalizedEmail = email.trim().toLowerCase();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+$/;
+
     if (!emailRegex.test(normalizedEmail)) {
-      alert("Please enter a valid email address.");
-      return;
-    }
-    const users = getUsers();
-    const existingUser = users.find((user) => user.email === normalizedEmail);
-    if (!existingUser || existingUser.password !== password) {
-      alert("These credentials do not match our records");
+      setError("Please enter a valid email address.");
       return;
     }
 
-    setCurrentUser(existingUser);
-    localStorage.setItem("isLoggedIn", "true");
-    navigate("/dashboard");
+    setLoading(true);
+    try {
+      await api.post("/auth/login", {
+        email: normalizedEmail,
+        password,
+      });
+      navigate("/dashboard");
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Login failed. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
   }
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
       <div className="w-full sm:max-w-[420px] px-5 bg-white rounded-lg shadow-lg p-10">
@@ -37,14 +49,23 @@ function Login() {
             <span className="text-gray-500">Don't have an account? </span>
             <Link
               to="/signup"
-              className="underline text-gray-900 font-medium hover:text-blue-600 transition-colors duration-150"
+              className="underline text-gray-900 font-medium hover:text-blue-600 transition-colors duration-150 cursor-pointer"
             >
               Sign up
             </Link>
           </div>
         </div>
-
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+          {message && (
+            <div className="mb-4 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md p-3">
+              {message}
+            </div>
+          )}
+          {error && (
+            <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
+              {error}
+            </div>
+          )}
           <form
             className="space-y-6"
             onSubmit={(e) => {
@@ -72,16 +93,13 @@ function Login() {
                 />
               </div>
             </div>
-
             <div>
-              <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-gray-900"
-                >
-                  Password
-                </label>
-              </div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-900"
+              >
+                Password
+              </label>
               <div className="mt-2">
                 <input
                   id="password"
@@ -95,13 +113,13 @@ function Login() {
                 />
               </div>
             </div>
-
             <div>
               <button
                 type="submit"
-                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500"
+                disabled={loading}
+                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 disabled:opacity-50 cursor-pointer"
               >
-                Sign in
+                {loading ? "Signing in..." : "Sign in"}
               </button>
             </div>
           </form>

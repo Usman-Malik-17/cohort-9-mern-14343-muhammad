@@ -1,10 +1,8 @@
-function getNotes() {
-  try {
-    const notes = localStorage.getItem("notes");
-    return notes ? JSON.parse(notes) : [];
-  } catch {
-    return [];
-  }
+import api from "../api/axios";
+
+async function getNotes(user) {
+  const response = await api.get("/notes/");
+  return response.data.data;
 }
 
 function saveNotes(notes) {
