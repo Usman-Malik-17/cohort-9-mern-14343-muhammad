@@ -123,4 +123,29 @@ const deleteNote = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Note has been deleted successfully"));
 });
 
-export { getAllNotes, getNoteById, createNote, updateNote, deleteNote };
+const exportNote = asyncHandler(async (req, res) => {
+  try {
+    const notes = await Note.find({ createdBy: req.user._id }).lean();
+    logger.info(
+      {
+        userId: req.user._id,
+        notesCount: notes.length,
+      },
+      "Notes exported successfully",
+    );
+    return res
+      .status(200)
+      .json(new ApiResponse(200, notes, "Notes exported successfully"));
+  } catch (error) {
+    throw new ApiError(404, "Note does not exist or invalid access");
+  }
+});
+
+export {
+  getAllNotes,
+  getNoteById,
+  createNote,
+  updateNote,
+  deleteNote,
+  exportNote,
+};

@@ -1,6 +1,6 @@
 import api from "../../api/axios";
-import React, { useState, useEffect } from "react";
-import { NotebookText, UserCircle, Plus } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { NotebookText, UserCircle, Plus, Download, Upload } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import NoteCard from "../../components/Notes/NoteCard";
 
@@ -9,9 +9,11 @@ function Dashboard() {
   const [searchVal, setSearchVal] = useState("");
   const [notes, setNotes] = useState([]);
   const [formError, setFormError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [pageLoading, setPageLoading] = useState(true);
   const [notesLoadFailed, setNotesLoadFailed] = useState(false);
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     async function loadDashboard() {
@@ -38,6 +40,29 @@ function Dashboard() {
     loadDashboard();
   }, []);
 
+  async function exportNotes() {
+    try {
+      const notesResponse = await api.get("/notes/export");
+      const notes = notesResponse.data.data;
+      const jsonData = JSON.stringify(notes, null, 2);
+      const blob = new Blob([jsonData], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "my-notes.json";
+      document.body.appendChild(link);
+      link.click();
+
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      setFormError("Failed to export notes");
+      console.error(error);
+    }
+  }
+
   if (!currentUser || pageLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -63,6 +88,73 @@ function Dashboard() {
       });
     }
     return notes;
+  }
+
+  function handleFileChange(event) {
+    setSuccessMessage("");
+    setFormError("");
+    const file = event.target.files[0];
+
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = async (event) => {
+      const text = event.target.result;
+
+      try {
+        const importedNotes = JSON.parse(text);
+
+        if (!Array.isArray(importedNotes) || importedNotes.length === 0) {
+          setFormError("Invalid notes file");
+          return;
+        }
+
+        const isValid = importedNotes.every(
+          (note) =>
+            note &&
+            typeof note === "object" &&
+            typeof note.title === "string" &&
+            note.title.trim() !== "" &&
+            typeof note.content === "string" &&
+            note.content.trim() !== "" &&
+            Array.isArray(note.tags) &&
+            note.tags.every((tag) => typeof tag === "string"),
+        );
+
+        if (!isValid) {
+          setFormError("Invalid notes file");
+          return;
+        }
+
+        console.log("All notes are valid:", importedNotes);
+
+        for (const note of importedNotes) {
+          await api.post("/notes/", {
+            title: note.title,
+            content: note.content,
+            tags: note.tags,
+          });
+        }
+        const notesResponse = await api.get("/notes/");
+
+        setNotes(
+          Array.isArray(notesResponse.data.data) ? notesResponse.data.data : [],
+        );
+
+        setFormError("");
+        setSuccessMessage("Notes imported successfully");
+
+        console.log("Notes imported successfully");
+      } catch (error) {
+        console.error(error);
+        setFormError("Invalid JSON file");
+      }
+    };
+
+    reader.readAsText(file);
   }
 
   const filtered = displayNotes();
@@ -92,6 +184,14 @@ function Dashboard() {
         <div className="absolute w-full h-0.5 left-0 right-0 bottom-0 bg-black opacity-20"></div>
       </nav>
       <div>
+        {successMessage && (
+          <div className="w-full max-w-[1080px] mx-auto mt-3 px-3">
+            <div className="text-sm text-green-600 bg-green-50 border border-green-200 rounded-md p-3">
+              {successMessage}
+            </div>
+          </div>
+        )}
+
         {formError && (
           <div className="w-full max-w-[1080px] mx-auto mt-3 px-3">
             <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
@@ -121,16 +221,47 @@ function Dashboard() {
             </div>
           </div>
         </div>
-        <Link
-          to="/notes/new"
-          className="underline font-semibold flex justify-center items-center gap-1 hover:text-blue-600 transition-colors duration-150"
-        >
-          <Plus
-            size={24}
-            className="hover:text-blue-600 transition-colors duration-150"
+        <div className="flex justify-center items-center gap-4 mt-2">
+          <button
+            type="button"
+            onClick={exportNotes}
+            className="underline font-semibold flex justify-center items-center gap-2 hover:text-blue-600 transition-colors duration-150 cursor-pointer"
+          >
+            <Download
+              size={24}
+              className="hover:text-blue-600 transition-colors duration-150"
+            />
+            Export Note
+          </button>
+
+          <Link
+            to="/notes/new"
+            className="underline font-semibold flex justify-center items-center gap-1 hover:text-blue-600 transition-colors duration-150"
+          >
+            <Plus
+              size={24}
+              className="hover:text-blue-600 transition-colors duration-150"
+            />
+            New Note
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => fileInputRef.current.click()}
+            className="underline font-semibold flex justify-center items-center gap-1 hover:text-blue-600 transition-colors duration-150 cursor-pointer"
+          >
+            <Upload size={24} />
+            Import Notes
+          </button>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json,application/json"
+            className="hidden"
+            onChange={handleFileChange}
           />
-          New Note
-        </Link>
+        </div>
       </div>
 
       {!notesLoadFailed && filtered.length === 0 ? (

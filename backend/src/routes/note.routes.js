@@ -5,6 +5,7 @@ import {
   createNote,
   updateNote,
   deleteNote,
+  exportNote,
 } from "../controllers/note.controllers.js";
 import { validate } from "../middlewares/validator.middleware.js";
 import { verifyJwt } from "../middlewares/auth.middleware.js";
@@ -16,6 +17,8 @@ import {
 const router = Router();
 router.route("/").get(verifyJwt, getAllNotes);
 router.route("/").post(verifyJwt, createNoteValidator(), validate, createNote);
+
+router.route("/export").get(verifyJwt, exportNote);
 router.route("/:noteId").get(verifyJwt, getNoteById);
 router
   .route("/:noteId")
