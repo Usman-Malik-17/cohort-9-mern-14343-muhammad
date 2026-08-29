@@ -56,7 +56,11 @@ function NoteDetails() {
     setDeleteError("");
     try {
       await api.delete(`/notes/${id}`);
-      navigate("/dashboard");
+      navigate("/dashboard", {
+        state: {
+          message: "Note deleted successfully",
+        },
+      });
     } catch (error) {
       console.error(error);
       setDeleteError(

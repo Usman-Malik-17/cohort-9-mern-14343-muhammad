@@ -1,7 +1,7 @@
 import api from "../../api/axios";
 import React, { useState, useEffect, useRef } from "react";
 import { NotebookText, UserCircle, Plus, Download, Upload } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import NoteCard from "../../components/Notes/NoteCard";
 
 function Dashboard() {
@@ -14,6 +14,8 @@ function Dashboard() {
   const [notesLoadFailed, setNotesLoadFailed] = useState(false);
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+  const location = useLocation();
+  const [message, setMessage] = useState(location.state?.message || "");
 
   useEffect(() => {
     async function loadDashboard() {
@@ -39,6 +41,27 @@ function Dashboard() {
     }
     loadDashboard();
   }, []);
+
+  useEffect(() => {
+    if (location.state?.message) {
+      const timer = setTimeout(() => {
+        setMessage("");
+        navigate("/dashboard", { replace: true, state: {} });
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!successMessage) return;
+
+    const timer = setTimeout(() => {
+      setSuccessMessage("");
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [successMessage]);
 
   async function exportNotes() {
     try {
@@ -90,10 +113,10 @@ function Dashboard() {
     return notes;
   }
 
-  function handleFileChange(event) {
+  function handleFileChange(inputEvent) {
     setSuccessMessage("");
     setFormError("");
-    const file = event.target.files[0];
+    const file = inputEvent.target.files[0];
 
     if (!file) {
       return;
@@ -120,8 +143,9 @@ function Dashboard() {
             note.title.trim() !== "" &&
             typeof note.content === "string" &&
             note.content.trim() !== "" &&
-            Array.isArray(note.tags) &&
-            note.tags.every((tag) => typeof tag === "string"),
+            (!note.tags ||
+              (Array.isArray(note.tags) &&
+                note.tags.every((tag) => typeof tag === "string"))),
         );
 
         if (!isValid) {
@@ -146,11 +170,12 @@ function Dashboard() {
 
         setFormError("");
         setSuccessMessage("Notes imported successfully");
+        inputEvent.target.value = "";
 
         console.log("Notes imported successfully");
       } catch (error) {
         console.error(error);
-        setFormError("Invalid JSON file");
+        setFormError("Failed to import notes");
       }
     };
 
@@ -184,6 +209,13 @@ function Dashboard() {
         <div className="absolute w-full h-0.5 left-0 right-0 bottom-0 bg-black opacity-20"></div>
       </nav>
       <div>
+        {message && (
+          <div className="w-full max-w-[1080px] mx-auto mt-3 px-3">
+            <div className="text-sm text-green-600 bg-green-50 border border-green-200 rounded-md p-3">
+              {message}
+            </div>
+          </div>
+        )}
         {successMessage && (
           <div className="w-full max-w-[1080px] mx-auto mt-3 px-3">
             <div className="text-sm text-green-600 bg-green-50 border border-green-200 rounded-md p-3">
@@ -231,7 +263,7 @@ function Dashboard() {
               size={24}
               className="hover:text-blue-600 transition-colors duration-150"
             />
-            Export Note
+            Export Notes
           </button>
 
           <Link

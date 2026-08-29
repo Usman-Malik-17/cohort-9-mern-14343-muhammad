@@ -93,7 +93,11 @@ function NoteEditor() {
       } else {
         await api.post("/notes/", { title, content, tags: tagsArray });
       }
-      navigate("/dashboard");
+      navigate("/dashboard", {
+        state: {
+          message: "Note saved successfully",
+        },
+      });
     } catch (error) {
       console.error("Error occurred", error);
       setFormError(
